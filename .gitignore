@@ -4,3 +4,4 @@
 backend/.env
 backend/.env.local
 backend/target/
+**/target/
