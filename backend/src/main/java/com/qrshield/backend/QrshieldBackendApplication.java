@@ -20,10 +20,17 @@ public class QrshieldBackendApplication {
 
     private static void loadDotEnv() {
         try {
-            // Load from current working directory
-            Dotenv dotenv = Dotenv.configure()
-                    .ignoreIfMissing()
-                    .load();
+            Dotenv dotenv;
+            File localEnv = new File(".env");
+            File backendEnv = new File("backend/.env");
+
+            if (localEnv.exists()) {
+                dotenv = Dotenv.configure().ignoreIfMissing().load();
+            } else if (backendEnv.exists()) {
+                dotenv = Dotenv.configure().directory("backend").ignoreIfMissing().load();
+            } else {
+                dotenv = Dotenv.configure().ignoreIfMissing().load();
+            }
 
             dotenv.entries().forEach(entry -> {
                 if (System.getProperty(entry.getKey()) == null && System.getenv(entry.getKey()) == null) {
@@ -31,22 +38,8 @@ public class QrshieldBackendApplication {
                 }
             });
 
-            // Also check parent directory if started from backend subdirectory
-            File parentEnv = new File("../.env");
-            if (parentEnv.exists()) {
-                Dotenv parentDotenv = Dotenv.configure()
-                        .directory("../")
-                        .ignoreIfMissing()
-                        .load();
-                parentDotenv.entries().forEach(entry -> {
-                    if (System.getProperty(entry.getKey()) == null && System.getenv(entry.getKey()) == null) {
-                        System.setProperty(entry.getKey(), entry.getValue());
-                    }
-                });
-            }
-
             if (System.getProperty("MONGODB_URI") != null) {
-                log.info("Successfully loaded environment variables from .env file.");
+                log.info("Successfully loaded environment variables from backend/.env");
             }
         } catch (Exception e) {
             log.warn("Notice: .env file loading skipped ({}) - relying on standard environment", e.getMessage());
