@@ -1,580 +1,200 @@
-# 🛡️ QRShield Backend - API Endpoints & Output Report
+# QRShield — Malware Detection & Security Test Report
 
-**Project**: QRShield Cybersecurity Engine  
-**Technology**: Java 25 / Spring Boot 4.x / Spring Data MongoDB / MongoDB Atlas / Google ZXing  
-**Server Base URL**: `http://localhost:8080`  
-**Test Date & Time**: 2026-10-23  
-
----
-
-## 📋 Table of Contents
-1. [Overview](#1-overview)
-2. [API Endpoints Quick Reference](#2-api-endpoints-quick-reference)
-3. [Endpoint Details & Live Test Outputs](#3-endpoint-details--live-test-outputs)
-   - [3.1 System Health Check (`GET /api/health`)](#31-system-health-check-get-apihealth)
-   - [3.2 Analyze URL - Safe Link (`POST /api/scan/analyze`)](#32-analyze-url---safe-link-post-apiscananalyze)
-   - [3.3 Analyze URL - Phishing / Malware Link (`POST /api/scan/analyze`)](#33-analyze-url---phishing--malware-link-post-apiscananalyze)
-   - [3.4 Analyze URL - Financial UPI QR Link (`POST /api/scan/analyze`)](#34-analyze-url---financial-upi-qr-link-post-apiscananalyze)
-   - [3.5 Analyze URL - Raw IP Host Link (`POST /api/scan/analyze`)](#35-analyze-url---raw-ip-host-link-post-apiscananalyze)
-   - [3.6 Direct QR Code Image Upload (`POST /api/scan/qr-image`)](#36-direct-qr-code-image-upload-post-apiscangr-image)
-   - [3.7 Fetch Scan History (`GET /api/scan/history`)](#37-fetch-scan-history-get-apiscanshistory)
-   - [3.8 Fetch Single Scan by ID (`GET /api/scan/history/{id}`)](#38-fetch-single-scan-by-id-get-apiscanshistoryid)
-   - [3.9 Security Dashboard Statistics (`GET /api/scan/stats`)](#39-security-dashboard-statistics-get-apiscansstats)
-   - [3.10 Delete a Scan Record (`DELETE /api/scan/history/{id}`)](#310-delete-a-scan-record-delete-apiscanshistoryid)
-   - [3.11 Clear All History (`DELETE /api/scan/history`)](#311-clear-all-history-delete-apiscanshistory)
-4. [Cybersecurity Engine Scoring Matrix](#4-cybersecurity-engine-scoring-matrix)
+**Execution Timestamp:** 2026-10-23 19:45:01 IST  
+**Environment:** Java 21 | Spring Boot 3.4.2 | Maven Surefire 3.5.6 | Windows 64-bit  
+**Module:** `qrshield-backend` (`0.0.1-SNAPSHOT`)  
+**Overall Status:** **`BUILD SUCCESS`** — **46 Tests Passed, 0 Failures, 0 Errors, 0 Skipped**
 
 ---
 
-## 1. Overview
+## 1. Executive Summary
 
-Frontend (Mobile App / Web) QR code-ஐ scan செய்து decode செய்த பிறகு கிடைக்கும் URL-ஐ Backend-க்கு அனுப்பி வைக்கும். Backend-ன் முக்கிய பணிகள்:
-1. **Provider Identification**: Hostname, IP address மற்றும் DNS reverse lookup மூலம் Domain Provider (Google, Cloudflare, Microsoft, AWS, Razorpay, Shortener Services) யார் என்பதைக் கண்டறிதல்.
-2. **Cybersecurity Risk Assessment (0 - 100)**: Brand typosquatting, URL shortener redirection, suspicious TLDs, dangerous file downloads (.exe, .apk), sensitive phishing keywords, மற்றும் Shannon entropy-ஐ ஆய்வு செய்து Risk Category (`LOW`, `MEDIUM`, `HIGH`) மற்றும் Status (`SAFE`, `SUSPICIOUS`, `DANGEROUS`, `UNVERIFIED`) வழங்குதல்.
-3. **Limitation Notice**: Domain unreachable அல்லது DNS resolve ஆகவில்லை எனில், தவறாக 'Safe' என்று காட்டாமல் `UNVERIFIED` என்ற தெளிவான எச்சரிக்கையை வழங்குதல்.
-4. **History & Dashboard Analytics**: அனைத்து scan-களையும் H2 Database-ல் சேமித்து, search, filter மற்றும் summary statistics தருதல்.
+This report documents the automated test suite results for the **QRShield Download-to-Hash Malware Detection Pipeline** and core cybersecurity engines. The test suite validates strict isolation, quarantine vault boundaries, streaming SHA-256 calculation, threat intelligence reputation semantics, path traversal mitigation, and Server-Side Request Forgery (SSRF) protections.
 
----
-
-## 2. API Endpoints Quick Reference
-
-| Method | Endpoint | Request Body / Params | Purpose |
-|---|---|---|---|
-| `GET` | `/api/health` | None | Service uptime மற்றும் status சரிபார்க்க |
-| `POST` | `/api/scan/analyze` | JSON `{ url, source, notes }` | URL-ஐ analyze செய்து provider, risk score, warnings தர |
-| `POST` | `/api/scan/qr-image` | Multipart `file` (image) | Gallery-லிருந்து QR code படம் upload செய்து scan செய்ய |
-| `GET` | `/api/scan/history` | `?category=...&search=...` | Scan history-ஐ filter செய்து பெற |
-| `GET` | `/api/scan/history/{id}` | Path variable `id` | குறிப்பிட்ட scan விவரங்களைப் பெற |
-| `DELETE` | `/api/scan/history/{id}` | Path variable `id` | ஒரு scan record-ஐ நீக்க |
-| `DELETE` | `/api/scan/history` | None | மொத்த scan history-ஐ அழிக்க |
-| `GET` | `/api/scan/stats` | None | Dashboard statistics (total, low, medium, high) பெற |
-
----
-
-## 3. Endpoint Details & Live Test Outputs
-
-### 3.1 System Health Check (`GET /api/health`)
-
-Backend சேவை சரியாக இயங்குகிறதா என்பதை சரிபார்க்கும் எளிய endpoint.
-
-- **Request**:
-```bash
-curl -X GET http://localhost:8080/api/health
+```
+================================================================================
+Total Tests Run: 46 | Passed: 46 | Failures: 0 | Errors: 0 | Skipped: 0
+Build Status: SUCCESS | Execution Time: 39.77 seconds
+================================================================================
 ```
 
-- **Live Output**:
+---
+
+## 2. Test Suite Breakdown by Security Domain
+
+| Test Suite Class | Domain / Component | Tests Run | Passed | Failures | Errors |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **`DownloadCaptureServiceTest`** | Safe Download Stream & SSRF Prevention | 3 | 3 | 0 | 0 |
+| **`FileHashServiceTest`** | Streaming SHA-256 Digest & Syntax Validation | 3 | 3 | 0 | 0 |
+| **`FileReputationServiceTest`** | Multi-Provider Reputation Coordination | 6 | 6 | 0 | 0 |
+| **`QuarantineStorageServiceTest`** | Quarantine Vault, Traversal & Capacity Limits | 6 | 6 | 0 | 0 |
+| **`VirusTotalHashProviderTest`** | Hash-Only VirusTotal v3 REST Integration | 3 | 3 | 0 | 0 |
+| **`ExplainableRiskEngineTest`** | Explainable Risk Scoring & Malware Integration | 6 | 6 | 0 | 0 |
+| **`UrlSecurityValidatorTest`** | Pre-Flight SSRF, Cloud Metadata & IP Filtering | 7 | 7 | 0 | 0 |
+| **`UrlAnalysisServiceTest`** | Static Pre-Click Heuristic Threat Analysis | 7 | 7 | 0 | 0 |
+| **`UrlScanControllerTest`** | REST API Endpoints & Request Validation | 4 | 4 | 0 | 0 |
+| **`QrshieldBackendApplicationTests`** | Spring Application Context Integrity | 1 | 1 | 0 | 0 |
+| **Total** | | **46** | **46** | **0** | **0** |
+
+---
+
+## 3. Detailed Verification Results
+
+### 3.1. Quarantine Vault & Filesystem Security (`QuarantineStorageServiceTest`)
+* **Path Traversal Rejection (`testPathTraversalBlocked`):** Passed. Blocked relative directory breakout attempts (`../../../Windows/System32/cmd.exe` and `..\..\secret.txt`) with `SecurityException`.
+* **Public Directory Guard (`testRejectPublicWebDirectory`):** Passed. System refuses initialization if the quarantine directory resolves into static/public web resources (`src/main/resources/static/`).
+* **Non-Executable Permissions (`testSuccessfulQuarantine`):** Passed. Quarantined artifacts are saved with random UUID names (`artifact-<UUID>.quarantine`) and operating system execution permissions are stripped.
+* **Oversized Stream Abort (`testRejectOversizedDownload`):** Passed. Streams exceeding `maxDownloadBytes` are interrupted in-flight, disk writes aborted, and partial files purged (`REJECTED_OVERSIZED`).
+* **Vault Capacity Ceilings (`testRejectCapacityExceeded`):** Passed. Downloads rejected immediately when aggregate vault storage reaches `quarantineMaxBytes` (`REJECTED_CAPACITY`).
+* **Display Sanitization (`testSanitizeDisplayFilename`):** Passed. Untrusted filename headers stripped of control characters, slashes, and traversal sequences before being used as metadata.
+
+### 3.2. Streaming SHA-256 Integrity (`FileHashServiceTest`)
+* **Standard NIST Vector (`testEmptyStreamSha256`):** Passed. Empty stream computes exact known digest `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+* **Known Text Vector (`testKnownFileSha256`):** Passed. File on disk computes exact digest for `"hello world"` (`b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9`).
+* **Format Syntax Validator (`testSha256Validation`):** Passed. Correctly validates 64-character lowercase/uppercase hex strings and rejects truncated or invalid characters.
+
+### 3.3. Threat Reputation & Safety Semantics (`FileReputationServiceTest` & `VirusTotalHashProviderTest`)
+* **Positive Malware Match (`testEicarMaliciousMatch`):** Passed. Standard EICAR test string signature correctly identified as `CONFIRMED_MALICIOUS`.
+* **No-Match Safety Invariant (`testNoKnownMatchIsNotSafe`):** Passed. Unknown hashes return `NO_KNOWN_MATCH` with explicit disclosure: *"No known hash match; this is not proof of safety."* The system **never** marks clean lookups as `SAFE`.
+* **Outage and Timeout Handling (`testProviderUnavailable`):** Passed. Provider timeout/outage correctly mapped to `UNAVAILABLE` rather than clean.
+* **Error Semantics (`testProviderError`):** Passed. Upstream format/server errors correctly mapped to `ERROR`.
+* **Privacy Assurance (VirusTotal):** Passed. Provider operates in **hash-only** mode via `GET /api/v3/files/{sha256}`. Raw file bytes are never uploaded. Provider is safely disabled when API key is missing.
+
+### 3.4. SSRF & Per-Hop Redirect Protection (`DownloadCaptureServiceTest` & `UrlSecurityValidatorTest`)
+* **Loopback Destination Block (`testSsrfDownloadBlocked`):** Passed. Download requests targeting `127.0.0.1:8080` immediately aborted with `CAPTURE_FAILED` and security policy warning.
+* **Cloud Metadata Endpoint Block (`testCloudMetadataBlocked`):** Passed. Requests to AWS/GCP cloud metadata `http://169.254.169.254/latest/user-data` blocked before any connection.
+* **Private RFC 1918 Range Blocking:** Passed. Direct or redirected requests to `10.0.0.0/8`, `172.16.0.0/12`, and `192.168.0.0/16` blocked.
+
+### 3.5. Explainable Risk Scoring Engine (`ExplainableRiskEngineTest`)
+* **Confirmed Malware Download:** Score calibrated to **100 (HIGH / DANGEROUS)** with critical recommendation warning.
+* **Clean Hash Download:** Score elevated to **SUSPICIOUS (MEDIUM)**. Unsolicited file downloads are never declared `SAFE`.
+* **Failed Download Capture:** Status calibrated to **UNVERIFIED** to preserve uncertainty when inspection cannot complete.
+* **Phishing & Brand Impersonation:** Deceptive login pages mimicking PayPal/Google/Microsoft scored at high risk (>80).
+* **Legitimate Websites:** Clean URLs verified with low risk scores (<30, `SAFE`).
+
+---
+
+## 4. Official Maven Test Log Output
+
+```text
+[INFO] Scanning for projects...
+[INFO] -------------------< com.qrshield:qrshield-backend >--------------------
+[INFO] Building qrshield-backend 0.0.1-SNAPSHOT
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] --- resources:3.5.0:resources (default-resources) @ qrshield-backend ---
+[INFO] Copying 1 resource from src\main\resources to target\classes
+[INFO] --- compiler:3.15.0:compile (default-compile) @ qrshield-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] --- resources:3.5.0:testResources (default-testResources) @ qrshield-backend ---
+[INFO] --- compiler:3.15.0:testCompile (default-testCompile) @ qrshield-backend ---
+[INFO] Nothing to compile - all classes are up to date.
+[INFO] --- surefire:3.5.6:test (default-test) @ qrshield-backend ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running com.qrshield.backend.controller.UrlScanControllerTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 15.18 s -- in com.qrshield.backend.controller.UrlScanControllerTest
+[INFO] Running com.qrshield.backend.malware.DownloadCaptureServiceTest
+19:44:52.904 [main] INFO com.qrshield.backend.malware.QuarantineStorageService -- Successfully quarantined download: opaqueId=artifact-3a0fe90e-d6ce-4c43-aae8-1cbcf59b9456.quarantine, sizeBytes=27, sha256=1ed01ded746d1f50eff84434f48b737f9238e6b683be2738f7ffb326b956743b
+19:44:52.970 [main] WARN com.qrshield.backend.security.UrlSecurityValidator -- Blocked SSRF attempt targeting restricted IP 127.0.0.1 for host 127.0.0.1
+19:44:52.975 [main] WARN com.qrshield.backend.malware.DownloadCaptureService -- SSRF blocked during download capture for URL http://127.0.0.1:8080/admin/export.exe: Host '127.0.0.1' resolved to restricted address (127.0.0.1). Access is blocked.
+19:44:52.998 [main] WARN com.qrshield.backend.malware.DownloadCaptureService -- SSRF blocked during download capture for URL http://169.254.169.254/latest/user-data: Host '169.254.169.254' is an internal, local, or cloud metadata name and is blocked.
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.182 s -- in com.qrshield.backend.malware.DownloadCaptureServiceTest
+[INFO] Running com.qrshield.backend.malware.FileHashServiceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.061 s -- in com.qrshield.backend.malware.FileHashServiceTest
+[INFO] Running com.qrshield.backend.malware.FileReputationServiceTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.034 s -- in com.qrshield.backend.malware.FileReputationServiceTest
+[INFO] Running com.qrshield.backend.malware.QuarantineStorageServiceTest
+19:44:53.140 [main] INFO com.qrshield.backend.malware.QuarantineStorageService -- Successfully quarantined download: opaqueId=artifact-785fa4e1-99bc-4b5a-a46c-db91be8d9858.quarantine, sizeBytes=41, sha256=4b451c4aeed701c0977e47edbc0f25092c1c39c73cdbccdb982fea1ed070fba5
+19:44:53.143 [main] INFO com.qrshield.backend.malware.QuarantineStorageService -- Audit: Successfully deleted quarantined artifact: artifact-785fa4e1-99bc-4b5a-a46c-db91be8d9858.quarantine
+19:44:53.166 [main] ERROR com.qrshield.backend.malware.QuarantineStorageService -- SECURITY ALERT: Path traversal attempt blocked for filename: ../../../Windows/System32/cmd.exe
+19:44:53.168 [main] ERROR com.qrshield.backend.malware.QuarantineStorageService -- SECURITY ALERT: Path traversal attempt blocked for filename: ..\..\secret.txt
+19:44:53.192 [main] WARN com.qrshield.backend.malware.QuarantineStorageService -- Quarantine vault capacity reached. Current: 4096 bytes, Max: 4096 bytes
+19:44:53.214 [main] WARN com.qrshield.backend.malware.QuarantineStorageService -- Download exceeded size limit of 1024 bytes (read 2048 bytes). Rejecting and purging partial file.
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.138 s -- in com.qrshield.backend.malware.QuarantineStorageServiceTest
+[INFO] Running com.qrshield.backend.malware.VirusTotalHashProviderTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.556 s -- in com.qrshield.backend.malware.VirusTotalHashProviderTest
+[INFO] Running com.qrshield.backend.QrshieldBackendApplicationTests
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.qrshield.backend.QrshieldBackendApplicationTests
+[INFO] Running com.qrshield.backend.security.UrlSecurityValidatorTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.031 s -- in com.qrshield.backend.security.UrlSecurityValidatorTest
+[INFO] Running com.qrshield.backend.service.ExplainableRiskEngineTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.051 s -- in com.qrshield.backend.service.ExplainableRiskEngineTest
+[INFO] Running com.qrshield.backend.service.UrlAnalysisServiceTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.554 s -- in com.qrshield.backend.service.UrlAnalysisServiceTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 46, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  39.767 s
+[INFO] Finished at: 2026-10-23T19:45:01+05:30
+[INFO] ------------------------------------------------------------------------
+```
+
+---
+
+## 5. Artifact Evidence Model & API Schema Example
+
+When a scan observes or triggers a file download, the response links the parent analysis, redirect chain, quarantined artifact, SHA-256 digest, provider findings, and limitations:
+
 ```json
 {
-  "engine": "Heuristic + Threat Intel + Provider Identification",
-  "timestamp": "2026-10-23T15:08:00.374970300",
-  "version": "1.0.0",
-  "status": "UP",
-  "service": "QRShield Backend Cybersecurity API"
-}
-```
-
----
-
-### 3.2 Analyze URL - Safe Link (`POST /api/scan/analyze`)
-
-நம்பகமான, பாதுகாப்பான நிறுவன URL-ஐ (`https://www.google.com`) scan செய்யும் போது கிடைக்கும் output.
-
-- **Request**:
-```bash
-curl -X POST http://localhost:8080/api/scan/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "https://www.google.com",
-    "source": "QR_CODE",
-    "notes": "Legitimate company QR code"
-  }'
-```
-
-- **Live Output**:
-```json
-{
-  "id": 1,
-  "originalUrl": "https://www.google.com",
-  "finalDestinationUrl": "https://www.google.com",
-  "domain": "www.google.com",
-  "providerName": "Google LLC / Alphabet Inc.",
-  "ipAddress": "142.251.157.119",
-  "protocol": "HTTPS",
-  "https": true,
-  "hasRedirects": false,
-  "redirectCount": 0,
-  "redirectChain": [
-    "https://www.google.com"
-  ],
-  "riskScore": 0,
-  "riskCategory": "LOW",
-  "status": "SAFE",
-  "warningSigns": [
-    "No significant cybersecurity threats or deceptive patterns detected."
-  ],
-  "securityRecommendations": [
-    "URL appears safe based on domain reputation and heuristic indicators.",
-    "Always maintain standard vigilance and verify the SSL padlock icon in your browser."
-  ],
-  "details": {
-    "canonicalHost": "maa03s47-in-f4.1e100.net",
-    "usesHttps": true,
-    "subdomainCount": 1,
-    "dnsResolved": true,
-    "isUrlShortener": false,
-    "resolvedIp": "142.251.157.119",
-    "reputableDomain": true,
-    "domainEntropy": 2.86,
-    "isSuspiciousTld": false,
-    "tld": "com",
-    "isIpHost": false
-  },
-  "scanSource": "QR_CODE",
-  "notes": "Legitimate company QR code",
-  "scannedAt": "2026-10-23T15:08:25.185974"
-}
-```
-
----
-
-### 3.3 Analyze URL - Phishing / Malware Link (`POST /api/scan/analyze`)
-
-PayPal நிறுவனத்தைப் போல போலியாக உருவாக்கப்பட்ட (`paypa1-account-security.xyz`), unencrypted HTTP மற்றும் `.exe` file download link கொண்ட malicious URL.
-
-- **Request**:
-```bash
-curl -X POST http://localhost:8080/api/scan/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "http://paypa1-account-security.xyz/login.exe",
-    "source": "QR_CODE",
-    "notes": "Suspicious public sticker"
-  }'
-```
-
-- **Live Output**:
-```json
-{
-  "id": 2,
-  "originalUrl": "http://paypa1-account-security.xyz/login.exe",
-  "finalDestinationUrl": "http://paypa1-account-security.xyz/login.exe",
-  "domain": "paypa1-account-security.xyz",
-  "providerName": "Independent / Generic Host",
-  "ipAddress": "Unresolved",
-  "protocol": "HTTP",
-  "https": false,
-  "hasRedirects": false,
-  "redirectCount": 0,
-  "redirectChain": [
-    "http://paypa1-account-security.xyz/login.exe"
-  ],
-  "riskScore": 100,
-  "riskCategory": "HIGH",
-  "status": "DANGEROUS",
-  "warningSigns": [
-    "DNS lookup failed: Domain does not exist or DNS records have been revoked/expired. Server is unreachable.",
-    "Unencrypted HTTP Protocol: Link does not use HTTPS encryption. Traffic can be eavesdropped, altered, or intercepted via Man-in-the-Middle (MitM) attacks.",
-    "High-Risk TLD (.xyz): This domain extension has an abnormally high statistical correlation with malicious spam, credential harvesting, and scam campaigns.",
-    "Suspected Brand Impersonation / Typosquatting: Domain appears to counterfeit popular brand 'PAYPAL' using character replacement, spelling variations, or brand injection.",
-    "High Character Entropy (3.93): Domain name appears to be randomly or algorithmically generated (frequently used in malware command & control or disposable phishing links).",
-    "Suspicious Security & Credential Keywords Found: [login]. Typical of fake login portals and phishing landing pages.",
-    "Direct Executable / Malware Payload Download Detected (.exe): Link immediately attempts to download or execute binary code on the client machine.",
-    "LIMITATION NOTICE: QRShield cannot reach or verify this domain. Host could not be resolved or server is offline. This link cannot be certified as safe."
-  ],
-  "securityRecommendations": [
-    "DO NOT OPEN THIS LINK. It poses a high cybersecurity threat.",
-    "DO NOT input any credentials, passwords, credit card numbers, or OTP codes.",
-    "If you received this QR code in a public place or unsolicited message, report it to cybersecurity administrators or the relevant platform.",
-    "Navigate to the legitimate service by manually typing the official website address in your browser instead of clicking this link.",
-    "Do not accept or run any file downloads prompted by this link."
-  ],
-  "details": {
-    "detectedKeywords": [
-      "login"
-    ],
-    "subdomainCount": 0,
-    "dnsResolved": false,
-    "highEntropy": true,
-    "isSuspiciousTld": true,
-    "tld": "xyz",
-    "dangerousFileDownload": ".exe",
-    "isBrandSpoofing": true,
-    "usesHttps": false,
-    "isUrlShortener": false,
-    "spoofedBrand": "paypal",
-    "domainEntropy": 3.93,
-    "isIpHost": false
-  },
-  "scanSource": "QR_CODE",
-  "notes": "Suspicious public sticker",
-  "scannedAt": "2026-10-23T15:08:32.279506"
-}
-```
-
----
-
-### 3.4 Analyze URL - Financial UPI QR Link (`POST /api/scan/analyze`)
-
-கடைகளில் scan செய்யப்படும் UPI கட்டண QR Code (`upi://pay`).
-
-- **Request**:
-```bash
-curl -X POST http://localhost:8080/api/scan/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "upi://pay?pa=shopkeeper@upi&pn=GroceryStore&am=250.00",
-    "source": "QR_CODE",
-    "notes": "Store billing QR code"
-  }'
-```
-
-- **Live Output**:
-```json
-{
-  "id": 3,
-  "originalUrl": "upi://pay?pa=shopkeeper@upi&pn=GroceryStore&am=250.00",
-  "finalDestinationUrl": null,
-  "domain": "UPI Payment Network",
-  "providerName": "NPCI / Unified Payments Interface",
-  "ipAddress": null,
-  "protocol": "UPI / Payment Scheme",
-  "https": false,
-  "hasRedirects": false,
-  "redirectCount": 0,
-  "redirectChain": [],
-  "riskScore": 25,
-  "riskCategory": "LOW",
-  "status": "SAFE",
-  "warningSigns": [
-    "This is an instant financial transaction link (UPI payment request)."
-  ],
-  "securityRecommendations": [
-    "Verify payee VPA (shopkeeper@upi) and merchant name (GroceryStore) before authorizing payment on your mobile UPI app."
-  ],
-  "details": {
-    "payeeName": "GroceryStore",
-    "payeeVpa": "shopkeeper@upi",
-    "isPaymentLink": true,
-    "amount": "250.00"
-  },
-  "scanSource": "QR_CODE",
-  "notes": "Store billing QR code",
-  "scannedAt": "2026-10-23T15:08:32.430000"
-}
-```
-
----
-
-### 3.5 Analyze URL - Raw IP Host Link (`POST /api/scan/analyze`)
-
-Domain-க்கு பதிலாக நேரடி IP முகவரி மற்றும் login credential keyword கொண்ட link (`http://192.168.1.1/admin/login`).
-
-- **Request**:
-```bash
-curl -X POST http://localhost:8080/api/scan/analyze \
-  -H "Content-Type: application/json" \
-  -d '{
-    "url": "http://192.168.1.1/admin/login",
-    "source": "MANUAL_URL",
-    "notes": "Direct IP link"
-  }'
-```
-
-- **Live Output**:
-```json
-{
-  "id": 4,
-  "originalUrl": "http://192.168.1.1/admin/login",
-  "finalDestinationUrl": "http://192.168.1.1/admin/login",
-  "domain": "192.168.1.1",
-  "providerName": "Independent / Generic Host",
-  "ipAddress": "192.168.1.1",
-  "protocol": "HTTP",
-  "https": false,
-  "hasRedirects": false,
-  "redirectCount": 0,
-  "redirectChain": [
-    "http://192.168.1.1/admin/login"
-  ],
-  "riskScore": 72,
-  "riskCategory": "HIGH",
-  "status": "DANGEROUS",
-  "warningSigns": [
-    "Unencrypted HTTP Protocol: Link does not use HTTPS encryption. Traffic can be eavesdropped, altered, or intercepted via Man-in-the-Middle (MitM) attacks.",
-    "Raw IP Address Hostname: URL directly targets an IP address (192.168.1.1) instead of a verified registered domain. Legitimate services virtually never use raw IP URLs.",
-    "Suspicious Security & Credential Keywords Found: [login]. Typical of fake login portals and phishing landing pages."
-  ],
-  "securityRecommendations": [
-    "DO NOT OPEN THIS LINK. It poses a high cybersecurity threat.",
-    "DO NOT input any credentials, passwords, credit card numbers, or OTP codes.",
-    "If you received this QR code in a public place or unsolicited message, report it to cybersecurity administrators or the relevant platform."
-  ],
-  "details": {
-    "detectedKeywords": [
-      "login"
-    ],
-    "canonicalHost": "192.168.1.1",
-    "usesHttps": false,
-    "subdomainCount": 0,
-    "dnsResolved": true,
-    "isUrlShortener": false,
-    "resolvedIp": "192.168.1.1",
-    "domainEntropy": 2.47,
-    "isSuspiciousTld": false,
-    "tld": "1",
-    "isIpHost": true
-  },
-  "scanSource": "MANUAL_URL",
-  "notes": "Direct IP link",
-  "scannedAt": "2026-10-23T15:08:33.120000"
-}
-```
-
----
-
-### 3.6 Direct QR Code Image Upload (`POST /api/scan/qr-image`)
-
-மொபைல் gallery அல்லது camera roll-லிருந்து QR Code புகைப்படத்தை நேரடியாக upload செய்யும் வசதி (Multipart Form Data). Google ZXing இயந்திரம் மூலமாக தானாக decode செய்யப்படும்.
-
-- **Request**:
-```bash
-curl -X POST http://localhost:8080/api/scan/qr-image \
-  -F "file=@qr_sample.png" \
-  -F "notes=Uploaded from user gallery"
-```
-
-- **Output Format**:
-```json
-{
-  "id": 5,
-  "originalUrl": "https://github.com/muthukumaranarc/QRShield",
-  "finalDestinationUrl": "https://github.com/muthukumaranarc/QRShield",
-  "domain": "github.com",
-  "providerName": "GitHub / Microsoft",
-  "ipAddress": "20.207.73.82",
-  "protocol": "HTTPS",
-  "https": true,
-  "riskScore": 0,
-  "riskCategory": "LOW",
-  "status": "SAFE",
-  "scanSource": "GALLERY_IMAGE",
-  "notes": "Uploaded from user gallery"
-}
-```
-
----
-
-### 3.7 Fetch Scan History (`GET /api/scan/history`)
-
-பயனரின் அனைத்து முந்தைய scan-களையும் காலவரிசைப்படி (Latest first) பெறலாம்.
-
-- **Request**:
-```bash
-# All history:
-curl -X GET http://localhost:8080/api/scan/history
-
-# Filter by category:
-curl -X GET "http://localhost:8080/api/scan/history?category=HIGH"
-
-# Search keyword:
-curl -X GET "http://localhost:8080/api/scan/history?search=paypal"
-```
-
-- **Live Output Sample**:
-```json
-[
-  {
-    "id": 4,
-    "originalUrl": "http://192.168.1.1/admin/login",
-    "domain": "192.168.1.1",
-    "providerName": "Independent / Generic Host",
-    "riskScore": 72,
-    "riskCategory": "HIGH",
-    "status": "DANGEROUS",
-    "scanSource": "MANUAL_URL",
-    "scannedAt": "2026-10-23T15:08:33.120000"
-  },
-  {
-    "id": 3,
-    "originalUrl": "upi://pay?pa=shopkeeper@upi&pn=GroceryStore&am=250.00",
-    "domain": "UPI Payment Network",
-    "providerName": "NPCI / Unified Payments Interface",
-    "riskScore": 25,
-    "riskCategory": "LOW",
-    "status": "SAFE",
-    "scanSource": "QR_CODE",
-    "scannedAt": "2026-10-23T15:08:32.430000"
-  },
-  {
-    "id": 2,
-    "originalUrl": "http://paypa1-account-security.xyz/login.exe",
-    "domain": "paypa1-account-security.xyz",
-    "providerName": "Independent / Generic Host",
-    "riskScore": 100,
-    "riskCategory": "HIGH",
-    "status": "DANGEROUS",
-    "scanSource": "QR_CODE",
-    "scannedAt": "2026-10-23T15:08:32.279506"
-  },
-  {
-    "id": 1,
-    "originalUrl": "https://www.google.com",
-    "domain": "www.google.com",
-    "providerName": "Google LLC / Alphabet Inc.",
-    "riskScore": 0,
-    "riskCategory": "LOW",
-    "status": "SAFE",
-    "scanSource": "QR_CODE",
-    "scannedAt": "2026-10-23T15:08:25.185974"
-  }
-]
-```
-
----
-
-### 3.8 Fetch Single Scan by ID (`GET /api/scan/history/{id}`)
-
-ஒரு குறிப்பிட்ட scan-ன் முழுமையான எச்சரிக்கைகள் மற்றும் பரிந்துரைகளை அறிய:
-
-- **Request**:
-```bash
-curl -X GET http://localhost:8080/api/scan/history/2
-```
-
-- **Live Output**:
-```json
-{
-  "id": 2,
-  "originalUrl": "http://paypa1-account-security.xyz/login.exe",
-  "domain": "paypa1-account-security.xyz",
-  "providerName": "Independent / Generic Host",
-  "riskScore": 100,
-  "riskCategory": "HIGH",
-  "status": "DANGEROUS",
-  "warningSigns": [
-    "DNS lookup failed: Domain does not exist or DNS records have been revoked/expired. Server is unreachable.",
-    "Unencrypted HTTP Protocol: Link does not use HTTPS encryption.",
-    "High-Risk TLD (.xyz)...",
-    "Suspected Brand Impersonation / Typosquatting: Domain appears to counterfeit popular brand 'PAYPAL'...",
-    "Direct Executable / Malware Payload Download Detected (.exe)..."
-  ],
-  "securityRecommendations": [
-    "DO NOT OPEN THIS LINK. It poses a high cybersecurity threat.",
-    "DO NOT input any credentials, passwords, credit card numbers, or OTP codes."
-  ]
-}
-```
-
----
-
-### 3.9 Security Dashboard Statistics (`GET /api/scan/stats`)
-
-Mobile App-ன் Dashboard-க்கு தேவையான மொத்த scan-களின் எண்ணிக்கை, safe percentage, மற்றும் risk வகைப்பாடு சுருக்கம்.
-
-- **Request**:
-```bash
-curl -X GET http://localhost:8080/api/scan/stats
-```
-
-- **Live Output**:
-```json
-{
-  "totalScans": 4,
-  "lowRiskCount": 2,
-  "mediumRiskCount": 0,
-  "highRiskCount": 2,
-  "unverifiedCount": 0,
-  "safePercentage": 50.0,
-  "recentScans": [
+  "scanId": "3a0fe90e-d6ce-4c43-aae8-1cbcf59b9456",
+  "initialUrl": "https://example.com/download-portal",
+  "finalDestinationUrl": "https://example.com/files/app.bin",
+  "domain": "example.com",
+  "riskScore": 45,
+  "riskCategory": "MEDIUM",
+  "status": "SUSPICIOUS",
+  "lifecycleStatus": "COMPLETED",
+  "downloadDetected": true,
+  "downloadArtifacts": [
     {
-      "id": 4,
-      "originalUrl": "http://192.168.1.1/admin/login",
-      "domain": "192.168.1.1",
-      "riskScore": 72,
-      "riskCategory": "HIGH",
-      "status": "DANGEROUS"
-    },
-    {
-      "id": 3,
-      "originalUrl": "upi://pay?pa=shopkeeper@upi&pn=GroceryStore&am=250.00",
-      "domain": "UPI Payment Network",
-      "riskScore": 25,
-      "riskCategory": "LOW",
-      "status": "SAFE"
-    },
-    {
-      "id": 2,
-      "originalUrl": "http://paypa1-account-security.xyz/login.exe",
-      "domain": "paypa1-account-security.xyz",
-      "riskScore": 100,
-      "riskCategory": "HIGH",
-      "status": "DANGEROUS"
-    },
-    {
-      "id": 1,
-      "originalUrl": "https://www.google.com",
-      "domain": "www.google.com",
-      "riskScore": 0,
-      "riskCategory": "LOW",
-      "status": "SAFE"
+      "artifactId": "8f3ab184-b049-4180-87a2-1e967d7195c6",
+      "analysisId": "3a0fe90e-d6ce-4c43-aae8-1cbcf59b9456",
+      "sourceUrl": "https://example.com/files/app.bin",
+      "redirectChain": [
+        "https://example.com/download-portal",
+        "https://example.com/files/app.bin"
+      ],
+      "finalUrl": "https://example.com/files/app.bin",
+      "originalFilename": "app.bin",
+      "contentType": "application/octet-stream",
+      "sizeBytes": 128450,
+      "sha256": "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+      "quarantineStatus": "QUARANTINED",
+      "reputationStatus": "NO_KNOWN_MATCH",
+      "findings": [
+        {
+          "providerName": "MockThreatIntel",
+          "status": "NO_KNOWN_MATCH",
+          "message": "No known hash match; this is not proof of safety.",
+          "checkedAt": "2026-10-23T19:44:53"
+        }
+      ],
+      "limitations": [
+        "The file was quarantined and was not executed.",
+        "No known hash match does not establish that the file is safe."
+      ],
+      "createdAt": "2026-10-23T19:44:52"
     }
-  ]
+  ],
+  "limitations": [
+    "The file was quarantined and was not executed.",
+    "No known hash match does not establish that the file is safe."
+  ],
+  "plainEnglishSummary": "Suspicious activity detected. The website initiated a file download. Although quarantined with no known malware match, unexpected downloads remain a security risk."
 }
 ```
 
 ---
 
-### 3.10 Delete a Scan Record (`DELETE /api/scan/history/{id}`)
+## 6. Conclusion
 
-குறிப்பிட்ட ஒரு scan record-ஐ நீக்க:
-
-- **Request**:
-```bash
-curl -X DELETE http://localhost:8080/api/scan/history/4
-```
-
-- **Live Output**:
-```json
-{
-  "success": true,
-  "message": "Scan record removed successfully"
-}
-```
-
----
-
-### 3.11 Clear All History (`DELETE /api/scan/history`)
-
-முழு scan history-ஐயும் அழிக்க:
-
-- **Request**:
-```bash
-curl -X DELETE http://localhost:8080/api/scan/history
-```
-
-- **Live Output**:
-```json
-{
-  "success": true,
-  "message": "All scan history cleared"
-}
-```
-
----
-
-## 4. Cybersecurity Engine Scoring Matrix
-
-| Indicator / Threat Pattern | Weighted Penalty | Risk Classification |
-|---|---|---|
-| **Malware / Executable Binary** (`.exe`, `.apk`, `.vbs`, `.bat`) | `+50` | Critical Danger |
-| **Brand Impersonation / Typosquatting** (`paypa1`, `goog1e`) | `+45` | Critical Danger |
-| **Raw IP Address Host** (`http://192.168.1.1`) | `+45` | Critical Danger |
-| **Punycode / Homograph Attack** (`xn--...`) | `+40` | High Danger |
-| **Abused / Spam TLD** (`.xyz`, `.top`, `.tk`, `.click`, `.buzz`) | `+30` | Medium Threat |
-| **Obfuscated URL Shortener** (`bit.ly`, `tinyurl.com`) | `+25` | Medium Threat |
-| **High Shannon Entropy** (Randomized DGA domains > 3.8) | `+20` | Medium Threat |
-| **Excessive Subdomain Depth** (Stacking ≥ 3 levels) | `+20` | Medium Threat |
-| **Suspicious Phishing Keywords** (`login`, `verify`, `banking`) | `+12 per keyword` | Suspicious |
-| **Unencrypted HTTP Connection** (No TLS encryption) | `+15` | Medium Threat |
-| **DNS Resolution Failure / Offline Host** | `Sets Base to 45` | **UNVERIFIED Limitation Notice** |
-| **Verified Reputable Domain** (Google, Microsoft, GitHub, Apple) | `Trust bound (≤ 10)` | Safe Verified |
+All 46 test cases across the backend, malware quarantine pipeline, streaming cryptographic hashing, threat intelligence providers, SSRF filters, and explainable risk scoring pass with zero failures. The system satisfies all requirements outlined in the Download-to-Hash Malware Detection specification.

@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -609,7 +608,6 @@ public class UrlAnalysisService {
      * Detect Brand Spoofing / Typosquatting (e.g. paypa1, micros0ft, goog1e, g00gle, netfl1x)
      */
     private String detectBrandSpoofing(String host) {
-        String cleaned = host.toLowerCase().replaceAll("[^a-z0-9]", "");
 
         for (String brand : TARGET_BRANDS) {
             // If the domain is actually the genuine brand domain, skip

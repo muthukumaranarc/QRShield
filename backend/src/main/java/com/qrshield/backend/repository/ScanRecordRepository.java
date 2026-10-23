@@ -3,14 +3,15 @@ package com.qrshield.backend.repository;
 import com.qrshield.backend.entity.RiskCategory;
 import com.qrshield.backend.entity.ScanRecord;
 import com.qrshield.backend.entity.ScanStatus;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.Query;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ScanRecordRepository extends MongoRepository<ScanRecord, String> {
+public interface ScanRecordRepository extends JpaRepository<ScanRecord, String> {
 
     List<ScanRecord> findAllByOrderByScannedAtDesc();
 
@@ -18,11 +19,16 @@ public interface ScanRecordRepository extends MongoRepository<ScanRecord, String
 
     List<ScanRecord> findByRiskCategoryOrderByScannedAtDesc(RiskCategory riskCategory);
 
-    @Query("{ '$or': [ { 'originalUrl': { '$regex': ?0, '$options': 'i' } }, { 'domain': { '$regex': ?0, '$options': 'i' } }, { 'providerName': { '$regex': ?0, '$options': 'i' } } ] }")
-    List<ScanRecord> searchRecords(String query);
+    @Query("SELECT r FROM ScanRecord r WHERE LOWER(r.originalUrl) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(r.domain) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(r.providerName) LIKE LOWER(CONCAT('%', :query, '%')) ORDER BY r.scannedAt DESC")
+    List<ScanRecord> searchRecords(@Param("query") String query);
 
-    @Query("{ 'riskCategory': ?1, '$or': [ { 'originalUrl': { '$regex': ?0, '$options': 'i' } }, { 'domain': { '$regex': ?0, '$options': 'i' } }, { 'providerName': { '$regex': ?0, '$options': 'i' } } ] }")
-    List<ScanRecord> searchRecordsWithCategory(String query, RiskCategory category);
+    @Query("SELECT r FROM ScanRecord r WHERE r.riskCategory = :category AND (" +
+           "LOWER(r.originalUrl) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(r.domain) LIKE LOWER(CONCAT('%', :query, '%')) " +
+           "OR LOWER(r.providerName) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY r.scannedAt DESC")
+    List<ScanRecord> searchRecordsWithCategory(@Param("query") String query, @Param("category") RiskCategory category);
 
     long countByRiskCategory(RiskCategory riskCategory);
 

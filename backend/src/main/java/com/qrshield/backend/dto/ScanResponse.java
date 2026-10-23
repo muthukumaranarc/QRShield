@@ -3,6 +3,7 @@ package com.qrshield.backend.dto;
 import com.qrshield.backend.entity.RiskCategory;
 import com.qrshield.backend.entity.ScanSource;
 import com.qrshield.backend.entity.ScanStatus;
+import com.qrshield.backend.malware.DownloadArtifact;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,9 +32,36 @@ public class ScanResponse {
     private Map<String, Object> details = new HashMap<>();
     private ScanSource scanSource;
     private String notes;
+    private boolean downloadDetected;
+    private List<DownloadArtifact> downloadArtifacts = new ArrayList<>();
+    private List<String> limitations = new ArrayList<>();
     private LocalDateTime scannedAt;
 
     public ScanResponse() {
+    }
+
+    public boolean isDownloadDetected() {
+        return downloadDetected;
+    }
+
+    public void setDownloadDetected(boolean downloadDetected) {
+        this.downloadDetected = downloadDetected;
+    }
+
+    public List<DownloadArtifact> getDownloadArtifacts() {
+        return downloadArtifacts;
+    }
+
+    public void setDownloadArtifacts(List<DownloadArtifact> downloadArtifacts) {
+        this.downloadArtifacts = downloadArtifacts;
+    }
+
+    public List<String> getLimitations() {
+        return limitations;
+    }
+
+    public void setLimitations(List<String> limitations) {
+        this.limitations = limitations;
     }
 
     public String getId() {

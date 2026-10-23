@@ -1,7 +1,5 @@
 package com.qrshield.backend.controller;
 
-import com.qrshield.backend.dto.DashboardStatsResponse;
-import com.qrshield.backend.dto.ScanResponse;
 import com.qrshield.backend.entity.RiskCategory;
 import com.qrshield.backend.entity.ScanRecord;
 import com.qrshield.backend.entity.ScanStatus;
@@ -20,7 +18,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
