@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "QRShield",
+    "slug": "qrshield",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "QRShield needs camera access to scan QR codes for risk analysis.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true
+        }
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1A73E8",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow QRShield to use your camera to scan QR codes."
+        }
+      ],
+      "expo-font"
+    ],
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

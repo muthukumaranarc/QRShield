@@ -1,0 +1,9 @@
+# Root gitignore
+node_modules/
+Frontend/node_modules/
+Extension/node_modules/
+Extension/dist/
+Frontend/.expo/
+Frontend/web-build/
+*.log
+.DS_Store
