@@ -1,0 +1,29 @@
+[Unit]
+Description=QRShield Guest Worker Playwright Sandbox Service
+After=network.target
+
+[Service]
+Type=simple
+User=sandboxuser
+Group=sandboxuser
+WorkingDirectory=/opt/qrshield-worker
+ExecStart=/usr/bin/java -jar /opt/qrshield-worker/qrshield-guest-worker-1.0.0.jar
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Hardened Linux Sandbox Sandboxing direct in systemd
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+RestrictRealtime=true
+MemoryMax=1.5G
+CPUQuota=150%
+
+[Install]
+WantedBy=multi-user.target
